@@ -16,6 +16,7 @@ type Employee struct {
 type Storage interface {
 	Insert(e *Employee)
 	Get(id int) (Employee, error)
+	GetAll() []Employee
 	Update(id int, e Employee)
 	Delete(id int)
 }
@@ -32,18 +33,15 @@ func NewMemoryStorage() *MemoryStorage {
 		counter: 1,
 	}
 }
-
-func (s *MemoryStorage) Insert(e *Employee) {
+func (s *MemoryStorage) GetAll() []Employee {
 	s.Lock()
-
-	e.ID = s.counter
-	s.data[e.ID] = *e
-
-	s.counter++
-
-	s.Unlock()
+	var massiv []Employee
+	defer s.Unlock()
+	for _, elem := range s.data {
+		massiv = append(massiv, elem)
+	}
+	return massiv
 }
-
 func (s *MemoryStorage) Get(id int) (Employee, error) {
 	s.Lock()
 	defer s.Unlock()
@@ -55,6 +53,28 @@ func (s *MemoryStorage) Get(id int) (Employee, error) {
 
 	return employee, nil
 }
+func (s *MemoryStorage) Insert(e *Employee) {
+	s.Lock()
+
+	e.ID = s.counter
+	s.data[e.ID] = *e
+
+	s.counter++
+
+	s.Unlock()
+}
+
+// func (s *MemoryStorage) Get(id int) (Employee, error) {
+// 	s.Lock()
+// 	defer s.Unlock()
+
+// 	employee, ok := s.data[id]
+// 	if !ok {
+// 		return employee, errors.New("employee not found")
+// 	}
+
+// 	return employee, nil
+// }
 
 func (s *MemoryStorage) Update(id int, e Employee) {
 	s.Lock()
